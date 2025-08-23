@@ -35,3 +35,76 @@ InvoicePrototypeRegistryImpl class.
 Run the provided test cases in the TestInvoicePrototypeRegistryImpl class to validate the correctness of your prototype pattern implementation.
 Ensure that invoice objects can be cloned successfully, and that the registry functions as expected.
 '''
+
+
+import copy
+
+class ObjectClonable:
+
+    def clone(self):
+        raise NotImplementedError
+
+class Invoice(ObjectClonable):
+    def __init__(self,invoiceId: int, customerName: str, amount: float, dueDate: str,invoiceType: str):
+        self.invoiceId = invoiceId
+        self.customerName = customerName
+        self.amount = amount
+        self.dueDate = dueDate
+        self.invoiceType = invoiceType
+
+    def clone(self):
+        return copy.deepcopy(self)
+
+    def __repr__(self):
+        return (f"Invoice(invoiceId={self.invoiceId}, customerName='{self.customerName}', "
+                f"amount={self.amount}, dueDate='{self.dueDate}', invoiceType='{self.invoiceType}')")
+
+class InvoicePrototypeRegistry:
+    def add_prototype(self, invoice_type: str, prototype: ObjectClonable):
+        raise NotImplementedError
+
+    def get_prototype(self, invoice_type: str) -> ObjectClonable:
+        raise NotImplementedError
+
+    def clone_invoice(self, invoice_type: str) -> ObjectClonable:
+        raise NotImplementedError
+
+class InvoicePrototypeRegistryImpl(InvoicePrototypeRegistry):
+
+    def __init__(self):
+        self.registry = {}
+
+    def add_prototype(self, invoice_type: str, prototype: ObjectClonable):
+        if not isinstance(prototype, ObjectClonable):
+            raise TypeError("Prototype must implement ObjectClonable interface")
+        self.registry[invoice_type] = prototype
+
+    def get_prototype(self, invoice_type: str) -> ObjectClonable:
+        if invoice_type not in self.registry:
+            raise KeyError(f"No prototype found for type: {invoice_type}")
+        return self.registry[invoice_type]
+
+    def clone_invoice(self, invoice_type: str) -> ObjectClonable:
+        if invoice_type in self.registry:
+            return self.get_prototype(invoice_type).clone()
+        raise KeyError(f"No prototype found for type: {invoice_type}")
+
+
+if __name__ == "__main__":
+
+    invoice1 = Invoice(
+        invoiceId=1,
+        customerName="John Doe",
+        amount=100.0,
+        dueDate="2023-10-01",
+        invoiceType="Standard"
+    )
+    registry = InvoicePrototypeRegistryImpl()
+    registry.add_prototype(invoice1.invoiceType, invoice1)
+    invoices = []
+    for idx in range(5):
+        invoices.append(registry.clone_invoice(invoice1.invoiceType))
+        invoices[idx].invoiceId = idx + 1
+
+    for item in invoices:
+        print(item)

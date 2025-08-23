@@ -34,3 +34,75 @@ based on the notification type and relevant arguments (recipient, sender, messag
 Run the provided test cases in the NotificationTest class to verify the correctness of your implementation. The tests will check if all notification
 classes are implemented correctly and if the factory class is able to create notification objects for different notification types.
 '''
+
+
+from abc import ABC, abstractmethod
+
+class Notification(ABC):
+    def __init__(self, recipient, message, sender=None):
+        self.recipient = recipient
+        self.message = message
+        self.sender = sender
+
+    @abstractmethod
+    def send(self):
+        pass
+
+class EmailNotification(Notification):
+    def send(self):
+        return f"Sending Email to {self.recipient}: {self.message}"
+
+class SMSNotification(Notification):
+    def send(self):
+        return f"Sending SMS to {self.recipient}: {self.message}"
+
+class PushNotification(Notification):
+    def send(self):
+        return f"Sending Push Notification to {self.recipient}: {self.message}"
+
+
+class NotificationFactory:
+
+    @staticmethod
+    def create_notification(notification_type, *args):
+        if notification_type == "email":
+            return EmailNotification(*args)
+        elif notification_type == "sms":
+            return SMSNotification(*args)
+        elif notification_type == "push":
+            return PushNotification(*args)
+        else:
+            raise ValueError(f"Unknown notification type: {notification_type}")
+
+class NotificationTest:
+
+    @staticmethod
+    def run_tests():
+
+        sender =  "kiran@gamil.com"
+        recipient = "kumar@gmail.com"
+        message = "Hello, this is a test notification."
+        # Test Email Notification
+        email_notification = NotificationFactory.create_notification('email', recipient, message, sender)
+        assert isinstance(email_notification, EmailNotification), "Email notification creation failed"
+        assert email_notification.send() == f"Sending Email to {recipient}: {message}", "Email notification send failed"
+        print(email_notification.send())
+        # Test SMS Notification
+        sms_notification = NotificationFactory.create_notification('sms', recipient, message)
+        assert isinstance(sms_notification, SMSNotification), "SMS notification creation failed"
+        assert sms_notification.send() == f"Sending SMS to {recipient}: {message}", "SMS notification send failed"
+        print(sms_notification.send())
+        # Test Push Notification
+        push_notification = NotificationFactory.create_notification('push', recipient, message)
+        assert isinstance(push_notification, PushNotification), "Push notification creation failed"
+        assert push_notification.send() == f"Sending Push Notification to {recipient}: {message}", "Push notification send failed"
+        print(push_notification.send())
+        # Test Unknown Notification Type
+        try:
+            unknown_notification = NotificationFactory.create_notification('fax', recipient, message)
+        except ValueError as e:
+            assert str(e) == "Unknown notification type: fax", "Unknown notification type handling failed"
+            print(e)
+
+if __name__ == "__main__":
+    NotificationTest.run_tests()
