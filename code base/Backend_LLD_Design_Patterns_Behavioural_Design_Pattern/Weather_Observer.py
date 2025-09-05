@@ -1,21 +1,143 @@
 '''
 Observer Pattern for Weather Monitoring System
 Problem Statement
-You are developing a weather monitoring system that collects data from various sensors such as temperature, humidity, and pressure sensors. When any sensor reading goes beyond a predefined threshold, you need to notify different weather stations through various communication channels like emails, SMS, and push notifications. Your task is to implement the Observer pattern to create a flexible notification system for this weather monitoring system.
+You are developing a weather monitoring system that collects data from various sensors such as temperature, humidity,
+and pressure sensors. When any sensor reading goes beyond a predefined threshold, you need to notify different weather
+stations through various communication channels like emails, SMS, and push notifications. Your task is to implement the
+Observer pattern to create a flexible notification system for this weather monitoring system.
 
 Assignment
-Your goal is to implement the Observer pattern to refactor the existing WeatherMonitoringApplication class. The current class handles weather condition updates and notifications. Observer classes (e.g., TemperatureService, PressureService, HumidityService) need to be notified when any of the weather readings go beyond their respective thresholds.
+Your goal is to implement the Observer pattern to refactor the existing WeatherMonitoringApplication class. The current
+class handles weather condition updates and notifications. Observer classes (e.g., TemperatureService, PressureService,
+HumidityService) need to be notified when any of the weather readings go beyond their respective thresholds.
 
 Implementing the Observer Pattern
-Review the original class: Study the WeatherMonitoringApplication class and its dependencies. Understand how it currently handles weather condition updates and notifications.
+Review the original class: Study the WeatherMonitoringApplication class and its dependencies. Understand how it currently
+handles weather condition updates and notifications.
 
-Implement the publisher class: You have been provided with a Publisher abstract class. Implement the required methods defined by this interface in the WeatherMonitoringApplication class. Remember that the Publisher interface defines the methods that a class can use to notify observers.
+Implement the publisher class: You have been provided with a Publisher abstract class. Implement the required methods
+defined by this interface in the WeatherMonitoringApplication class. Remember that the Publisher interface defines the
+methods that a class can use to notify observers.
 
-Implement the observer interface: Create an interface named Observer with a method that takes the weather conditions (e.g., temperature, humidity, pressure) as arguments. Observer classes (e.g., TemperatureService, PressureService, HumidityService) will implement this interface to receive notifications.
+Implement the observer interface: Create an interface named Observer with a method that takes the weather conditions
+(e.g., temperature, humidity, pressure) as arguments. Observer classes (e.g., TemperatureService, PressureService, HumidityService)
+will implement this interface to receive notifications.
 
-Refactor the publisher: Modify the WeatherMonitoringApplication class to adhere to the Observer pattern. Do not change the constructor signature as it's used by the tests.
+Refactor the publisher: Modify the WeatherMonitoringApplication class to adhere to the Observer pattern. Do not change
+the constructor signature as it's used by the tests.
 
-Refactor the observers: Update the observer classes to implement the Observer interface. Modify their existing methods to match the new interface method signature.
+Refactor the observers: Update the observer classes to implement the Observer interface. Modify their existing methods
+to match the new interface method signature.
 
-Test your implementation: Run the provided test cases in the WeatherMonitoringTests class to verify that your observer pattern implementation works correctly. These test cases will check if observers are notified appropriately and if the WeatherMonitoringApplication functions as expected.
+Test your implementation: Run the provided test cases in the WeatherMonitoringTests class to verify that your observer
+pattern implementation works correctly. These test cases will check if observers are notified appropriately and if the
+WeatherMonitoringApplication functions as expected.
 '''
+
+from abc import ABC, abstractmethod
+from typing import Optional
+
+
+
+# step1: create the observer interface
+
+class Observer(ABC):
+
+    @abstractmethod
+    def update(self, temperature: float, humidity: float, pressure: float)->Optional[str]:
+        pass
+
+
+# step2: create concrete observer
+class TemperatureService(Observer):
+
+    def update(self, temperature: float, humidity: float, pressure: float)-> Optional[str]:
+        if temperature > 35:
+            return f"TemperatureService: Alert! High temperature of {temperature}°C"
+        elif temperature < 0:
+            return f"TemperatureService: Alert! Low temperature of {temperature}°C"
+        return None
+
+class PressureService(Observer):
+
+    def update(self, temperature: float, humidity: float, pressure: float) ->Optional[str]:
+        if pressure > 1020:
+            return f"PressureService: Alert! High pressure of {pressure} hPa"
+        elif pressure < 980:
+            return f"PressureService: Alert! Low pressure of {pressure} hPa"
+        return None
+
+class HumidityService(Observer):
+
+    def update(self, temperature: float, humidity: float, pressure: float) ->Optional[str]:
+        if humidity > 80:
+            return f"HumidityService: Alert! High humidity of {humidity}%"
+        elif humidity < 20:
+            return f"HumidityService: Alert! Low humidity of {humidity}%"
+        return None
+
+# step3: create the publisher interface
+class Publisher(ABC):
+
+    @abstractmethod
+    def register(self, observer: Observer):
+        pass
+
+    @abstractmethod
+    def unregister(self, observer: Observer):
+        pass
+
+    def notify(self,temperature,humidity, pressure):
+        pass
+
+
+# step4:  create the concrete publisher
+
+class WeatherMonitoringApplication(Publisher):
+
+    def __init__(self):
+        self.observers = []
+
+    def register(self, observer: Observer):
+        if observer not in self.observers:
+            self.observers.append(observer)
+        else: print(f"the {observer} is already registered")
+
+    def unregister(self, observer: Observer):
+        if observer in self.observers:
+            self.observers.remove(observer)
+        else: print(f"the {observer} is not registered")
+
+    def notify(self, temperature,humidity, pressure):
+        noifications = []
+        for observer in self.observers:
+            message = observer.update(temperature, humidity, pressure)
+            if message:
+                noifications.append(message)
+        return '\n'.join(noifications)
+
+class WeatherMonitoringTests:
+
+    @staticmethod
+    def test(weather_app: Publisher):
+        # Create observers
+        temp_service = TemperatureService()
+        pressure_service = PressureService()
+        humidity_service = HumidityService()
+
+        # Register observers
+        weather_app.register(temp_service)
+        weather_app.register(pressure_service)
+        weather_app.register(humidity_service)
+
+        # Simulate weather condition updates
+        notifications = weather_app.notify(temperature=36, humidity=85, pressure=1015)
+        print(notifications)
+
+if __name__ == "__main__":
+
+    weather_app = WeatherMonitoringApplication()
+    WeatherMonitoringTests.test(weather_app)
+
+
+
